@@ -58,7 +58,7 @@ def get_rag_chain():
     cohere_api_key = os.getenv("COHERE_API_KEY")
     if not cohere_api_key:
         raise ValueError("COHERE_API_KEY is missing from the .env file.")
-        
+         
     compressor = CohereRerank(cohere_api_key=cohere_api_key, model="rerank-english-v3.0", top_n=5)
     compression_retriever = ContextualCompressionRetriever(
         base_compressor=compressor,
@@ -75,9 +75,9 @@ def get_rag_chain():
 
     # 5. Create a Strict System Prompt Template
     system_prompt = (
-        "You are an assistant for question-answering tasks. "
-        "Answer the user's question using ONLY the provided context. "
-        "If you don't know the answer based on the context, say you don't know. "
+        "You are an assistant for question-answering tasks. "+
+        "Answer the user's question using ONLY the provided context. "+
+        "If you don't know the answer based on the context, say you don't know. "+
         "Keep your answer concise and informative. \n\n"
         "Context: {context}"
     )
