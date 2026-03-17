@@ -4,10 +4,7 @@ from dotenv import load_dotenv
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 from langchain_chroma import Chroma
 from langchain_cohere import CohereRerank
-try:
-    from langchain.retrievers.contextual_compression import ContextualCompressionRetriever
-except ModuleNotFoundError:
-    from langchain_community.retrievers import ContextualCompressionRetriever
+from langchain.retrievers import ContextualCompressionRetriever
 from langchain_core.prompts import ChatPromptTemplate
 from langchain.chains import create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
