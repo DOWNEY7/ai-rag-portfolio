@@ -26,6 +26,10 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
+    - name: Debug - Print Installed Versions
+      run: |
+        pip show langchain langchain-core langchain-community langchain-openai langchain-chroma langchain-cohere ragas | grep -E "^(Name|Version)"
+
     - name: Run Data Ingestion
       env:
         OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}

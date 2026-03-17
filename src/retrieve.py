@@ -4,10 +4,28 @@ from dotenv import load_dotenv
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 from langchain_chroma import Chroma
 from langchain_cohere import CohereRerank
-from langchain.retrievers import ContextualCompressionRetriever
+
+# Guarded import: ContextualCompressionRetriever moved between langchain versions
+try:
+    from langchain.retrievers.contextual_compression import ContextualCompressionRetriever
+except (ModuleNotFoundError, ImportError):
+    try:
+        from langchain_community.retrievers.contextual_compression import ContextualCompressionRetriever
+    except (ModuleNotFoundError, ImportError) as e:
+        raise ImportError(
+            "ContextualCompressionRetriever not found. "
+            "Ensure compatible langchain / langchain-community versions are installed."
+        ) from e
+
 from langchain_core.prompts import ChatPromptTemplate
-from langchain.chains import create_retrieval_chain
-from langchain.chains.combine_documents import create_stuff_documents_chain
+
+# Guarded import: chain utilities also moved between versions
+try:
+    from langchain.chains import create_retrieval_chain
+    from langchain.chains.combine_documents import create_stuff_documents_chain
+except (ModuleNotFoundError, ImportError):
+    from langchain_community.chains import create_retrieval_chain
+    from langchain_community.chains.combine_documents import create_stuff_documents_chain
 
 def get_rag_chain():
     """Builds and returns the LangChain RAG pipeline."""
