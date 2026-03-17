@@ -2,6 +2,7 @@ langchain
 langchain-openai
 langchain-chroma
 langchain-cohere
+langchain-community
 unstructured
 markdown
 pypdf
