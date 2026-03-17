@@ -29,13 +29,14 @@ jobs:
     - name: Run Data Ingestion
       env:
         OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        OPENAI_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
       run: |
-        # Build the local Chroma database so the evaluation script has a vector store to query
         python src/ingest.py
 
     - name: Execute RAG Evaluation Pipeline
       env:
         OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        OPENAI_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
         COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
       run: |
         python src/evaluate.py
