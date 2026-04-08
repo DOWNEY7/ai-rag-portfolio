@@ -1,4 +1,14 @@
 import os
+# [Windows Hotfix] Ensure Python in Conda finds the correct sqlite3.dll
+if os.name == 'nt':
+    conda_base = r"C:\Users\MINNAS\anaconda3\Library\bin"
+    if os.path.exists(conda_base):
+        os.environ["PATH"] = conda_base + ";" + os.environ.get("PATH", "")
+        try:
+            os.add_dll_directory(conda_base)
+        except AttributeError:
+            pass
+
 from pathlib import Path
 from dotenv import load_dotenv
 from langchain_community.document_loaders import PyPDFLoader, UnstructuredMarkdownLoader

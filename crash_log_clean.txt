@@ -1,0 +1,47 @@
+Failed to send telemetry event ClientStartEvent: capture() takes 1 positional argument but 3 were given
+--- Processing Query: 'How do I use prompt caching in Claude?' ---
+Constructing RAG Chain with Compression Retriever...
+Traceback (most recent call last):
+  File "N:\ai-rag-portfolio\src\retrieve.py", line 138, in <module>
+    run_retrieval_pipeline(test_query)
+  File "N:\ai-rag-portfolio\src\retrieve.py", line 110, in run_retrieval_pipeline
+    rag_chain = get_rag_chain()
+  File "N:\ai-rag-portfolio\src\retrieve.py", line 62, in get_rag_chain
+    vectorstore = Chroma(
+  File "N:\ai-rag-portfolio\.venv\lib\site-packages\langchain_chroma\vectorstores.py", line 342, in __init__
+    self.__ensure_collection()
+  File "N:\ai-rag-portfolio\.venv\lib\site-packages\langchain_chroma\vectorstores.py", line 349, in __ensure_collection
+    self._chroma_collection = self._client.get_or_create_collection(
+  File "N:\ai-rag-portfolio\.venv\lib\site-packages\chromadb\api\client.py", line 194, in get_or_create_collection
+    model = self._server.get_or_create_collection(
+  File "N:\ai-rag-portfolio\.venv\lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py", line 150, in wrapper
+    return f(*args, **kwargs)
+  File "N:\ai-rag-portfolio\.venv\lib\site-packages\chromadb\api\segment.py", line 103, in wrapper
+    return self._rate_limit_enforcer.rate_limit(func)(*args, **kwargs)
+  File "N:\ai-rag-portfolio\.venv\lib\site-packages\chromadb\rate_limit\simple_rate_limit\__init__.py", line 24, in wrapper
+    return func(*args, **kwargs)
+  File "N:\ai-rag-portfolio\.venv\lib\site-packages\chromadb\api\segment.py", line 288, in get_or_create_collection
+    return self.create_collection(
+  File "N:\ai-rag-portfolio\.venv\lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py", line 150, in wrapper
+    return f(*args, **kwargs)
+  File "N:\ai-rag-portfolio\.venv\lib\site-packages\chromadb\api\segment.py", line 103, in wrapper
+    return self._rate_limit_enforcer.rate_limit(func)(*args, **kwargs)
+  File "N:\ai-rag-portfolio\.venv\lib\site-packages\chromadb\rate_limit\simple_rate_limit\__init__.py", line 24, in wrapper
+    return func(*args, **kwargs)
+  File "N:\ai-rag-portfolio\.venv\lib\site-packages\chromadb\api\segment.py", line 242, in create_collection
+    coll, created = self._sysdb.create_collection(
+  File "N:\ai-rag-portfolio\.venv\lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py", line 150, in wrapper
+    return f(*args, **kwargs)
+  File "N:\ai-rag-portfolio\.venv\lib\site-packages\chromadb\db\mixins\sysdb.py", line 294, in create_collection
+    existing = self.get_collections(name=name, tenant=tenant, database=database)
+  File "N:\ai-rag-portfolio\.venv\lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py", line 150, in wrapper
+    return f(*args, **kwargs)
+  File "N:\ai-rag-portfolio\.venv\lib\site-packages\chromadb\db\mixins\sysdb.py", line 521, in get_collections
+    configuration = self._load_config_from_json_str_and_migrate(
+  File "N:\ai-rag-portfolio\.venv\lib\site-packages\chromadb\db\mixins\sysdb.py", line 886, in _load_config_from_json_str_and_migrate
+    return CollectionConfigurationInternal.from_json_str(json_str)
+  File "N:\ai-rag-portfolio\.venv\lib\site-packages\chromadb\api\configuration.py", line 188, in from_json_str
+    return cls.from_json(config_json)
+  File "N:\ai-rag-portfolio\.venv\lib\site-packages\chromadb\api\configuration.py", line 209, in from_json
+    f"Trying to instantiate configuration of type {cls.__name__} from JSON with type {json_map['_type']}"
+KeyError: '_type'

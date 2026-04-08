@@ -1,5 +1,6 @@
 import os
 from dotenv import load_dotenv
+from langfuse.langchain import CallbackHandler
 
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 from langchain_chroma import Chroma
@@ -98,9 +99,13 @@ def run_retrieval_pipeline(query: str):
     print("Constructing RAG Chain with Compression Retriever...")
     rag_chain = get_rag_chain()
 
-    # 7. Execute the query
+    # Initialize Langfuse callback handler (reads keys from env vars)
+    langfuse_handler = CallbackHandler()
+    print("Langfuse tracing enabled.")
+
+    # 7. Execute the query with Langfuse tracing
     print("Executing query...\n")
-    response = rag_chain.invoke({"input": query})
+    response = rag_chain.invoke({"input": query}, config={"callbacks": [langfuse_handler]})
 
     # 8. Print the results
     print("="*60)
@@ -113,7 +118,11 @@ def run_retrieval_pipeline(query: str):
         source_file = doc.metadata.get("source", "Unknown Source")
         print(f"  [{i+1}] Source File: {source_file}")
 
+    # Flush Langfuse to ensure all traces are sent before exit
+    langfuse_handler.flush()
+    print("\n✅ Langfuse trace flushed successfully.")
+
 if __name__ == "__main__":
     # Test Query
-    test_query = "What are some best practices for tool use or function calling?"
+    test_query = "How do I use prompt caching in Claude?"
     run_retrieval_pipeline(test_query)

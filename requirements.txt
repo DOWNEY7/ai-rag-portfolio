@@ -12,5 +12,6 @@ python-dotenv
 chromadb
 cohere
 tiktoken
+langfuse
 ragas
 datasets
