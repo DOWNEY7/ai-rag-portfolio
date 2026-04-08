@@ -10,7 +10,8 @@ from ragas import evaluate
 try:
     from ragas.metrics import faithfulness, answer_relevancy
 except ImportError:
-    from ragas.metrics.collections import faithfulness, answer_relevancy
+    pass
+from ragas.metrics.collections import faithfulness, answer_relevancy
 from ragas.llms import LangchainLLMWrapper
 from ragas.embeddings import LangchainEmbeddingsWrapper
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings

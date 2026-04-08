@@ -1,0 +1,12 @@
+
+--- Testing text-embedding-3-small ---
+Failed: Error code: 404 - {'error': {'message': 'No endpoints available matching your guardrail restrictions and data policy. Configure: https://openrouter.ai/settings/privacy', 'code': 404}}
+
+--- Testing openai/text-embedding-3-small ---
+Failed: Error code: 404 - {'error': {'message': 'No endpoints available matching your guardrail restrictions and data policy. Configure: https://openrouter.ai/settings/privacy', 'code': 404}}
+
+--- Testing openai/text-embedding-3-small:beta ---
+Failed: Error code: 404 - {'error': {'message': 'No endpoints available matching your guardrail restrictions and data policy. Configure: https://openrouter.ai/settings/privacy', 'code': 404}}
+
+--- Testing text-embedding-3-small:beta ---
+Failed: Error code: 404 - {'error': {'message': 'No endpoints available matching your guardrail restrictions and data policy. Configure: https://openrouter.ai/settings/privacy', 'code': 404}}
