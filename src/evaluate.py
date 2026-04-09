@@ -90,7 +90,7 @@ def main():
     print("Starting Ragas evaluation on Faithfulness and Answer Relevancy...")
     result = evaluate(
         dataset,
-        metrics=[faithfulness, answer_relevancy],
+        metrics=[faithfulness(), answer_relevancy()],
         llm=LangchainLLMWrapper(evaluator_llm),
         embeddings=LangchainEmbeddingsWrapper(evaluator_embeddings)
     )
