@@ -34,7 +34,7 @@ def main():
         "A system prompt should assign a role, provide clear instructions, establish rules and constraints, and give examples of desired output behavior."
     ]
 
-    print("2. Collect Answers and Contexts from our RAG Pipeline")
+    # 2. Collect Answers and Contexts from our RAG Pipeline
     print("Initializing our live RAG pipeline...")
     rag_chain = get_rag_chain()
 
@@ -52,7 +52,6 @@ def main():
         contexts.append(retrieved_contexts)
 
     # 3. Format as HuggingFace Dataset
-    print("3. Format as HuggingFace Dataset")
     # ragas expects a specific dictionary format
     data = {
         "user_input": questions,    # Changed from "question" in newer versions
@@ -70,7 +69,6 @@ def main():
     dataset = Dataset.from_dict(data)
 
     # 4. Configure Ragas with OpenRouter
-    print("4. Configure Ragas with OpenRouter")
     print("Configuring Ragas evaluator with OpenRouter GPT-4o-mini...")
     evaluator_llm = ChatOpenAI(
         base_url="https://openrouter.ai/api/v1",
@@ -88,7 +86,6 @@ def main():
     wrapped_embeds = LangchainEmbeddingsWrapper(evaluator_embeddings)
 
     # 5. Run Evaluation
-    print("5. Run Evaluation")
     print("Starting Ragas evaluation on Faithfulness and Answer Relevancy...")
     result = evaluate(
         dataset,
