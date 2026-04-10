@@ -5,19 +5,15 @@ import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from dotenv import load_dotenv
+from src.retrieve import get_rag_chain
 from datasets import Dataset
 from ragas import evaluate
-try:
-    from ragas.metrics import faithfulness, answer_relevancy
-except ImportError:
-    pass
 from ragas.metrics.collections import faithfulness, answer_relevancy
 from ragas.llms import LangchainLLMWrapper
 from ragas.embeddings import LangchainEmbeddingsWrapper
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 
-# Import RAG chain from our retrieve script
-from src.retrieve import get_rag_chain
+
 
 def main():
     load_dotenv()
@@ -38,7 +34,7 @@ def main():
         "A system prompt should assign a role, provide clear instructions, establish rules and constraints, and give examples of desired output behavior."
     ]
 
-    # 2. Collect Answers and Contexts from our RAG Pipeline
+    print("2. Collect Answers and Contexts from our RAG Pipeline")
     print("Initializing our live RAG pipeline...")
     rag_chain = get_rag_chain()
 
@@ -56,6 +52,7 @@ def main():
         contexts.append(retrieved_contexts)
 
     # 3. Format as HuggingFace Dataset
+    print("3. Format as HuggingFace Dataset")
     # ragas expects a specific dictionary format
     data = {
         "user_input": questions,    # Changed from "question" in newer versions
@@ -73,6 +70,7 @@ def main():
     dataset = Dataset.from_dict(data)
 
     # 4. Configure Ragas with OpenRouter
+    print("4. Configure Ragas with OpenRouter")
     print("Configuring Ragas evaluator with OpenRouter GPT-4o-mini...")
     evaluator_llm = ChatOpenAI(
         base_url="https://openrouter.ai/api/v1",
@@ -87,6 +85,7 @@ def main():
     )
 
     # 5. Run Evaluation
+    print("5. Run Evaluation")
     print("Starting Ragas evaluation on Faithfulness and Answer Relevancy...")
     result = evaluate(
         dataset,
@@ -97,7 +96,7 @@ def main():
 
     # 6. Print Results
     print("\n" + "="*60)
-    print("📊 RAGAS EVALUATION RESULTS")
+    print("RAGAS EVALUATION RESULTS")
     print("="*60)
     print(result)
     try:

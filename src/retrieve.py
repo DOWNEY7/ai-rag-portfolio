@@ -6,27 +6,12 @@ from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 from langchain_chroma import Chroma
 from langchain_cohere import CohereRerank
 
-# Guarded import: ContextualCompressionRetriever moved between langchain versions
-try:
-    from langchain.retrievers.contextual_compression import ContextualCompressionRetriever
-except (ModuleNotFoundError, ImportError):
-    try:
-        from langchain_community.retrievers.contextual_compression import ContextualCompressionRetriever
-    except (ModuleNotFoundError, ImportError) as e:
-        raise ImportError(
-            "ContextualCompressionRetriever not found. "
-            "Ensure compatible langchain / langchain-community versions are installed."
-        ) from e
+from langchain.retrievers.contextual_compression import ContextualCompressionRetriever
 
 from langchain_core.prompts import ChatPromptTemplate
 
-# Guarded import: chain utilities also moved between versions
-try:
-    from langchain.chains import create_retrieval_chain
-    from langchain.chains.combine_documents import create_stuff_documents_chain
-except (ModuleNotFoundError, ImportError):
-    from langchain_community.chains import create_retrieval_chain
-    from langchain_community.chains.combine_documents import create_stuff_documents_chain
+from langchain.chains import create_retrieval_chain
+from langchain.chains.combine_documents import create_stuff_documents_chain
 
 def get_rag_chain():
     """Builds and returns the LangChain RAG pipeline."""
@@ -109,18 +94,21 @@ def run_retrieval_pipeline(query: str):
 
     # 8. Print the results
     print("="*60)
-    print("🤖 AI ANSWER:\n")
+    print("AI ANSWER:\n")
     print(response["answer"])
     print("\n" + "="*60)
     
-    print("\n📚 CITATIONS (Retrieved Context Metadata):")
+    print("\nCITATIONS (Retrieved Context Metadata):")
     for i, doc in enumerate(response["context"]):
         source_file = doc.metadata.get("source", "Unknown Source")
         print(f"  [{i+1}] Source File: {source_file}")
 
     # Flush Langfuse to ensure all traces are sent before exit
-    langfuse_handler.flush()
-    print("\n✅ Langfuse trace flushed successfully.")
+    if hasattr(langfuse_handler, 'flush'):
+        langfuse_handler.flush()
+    elif hasattr(langfuse_handler, 'client'):
+        langfuse_handler.client.flush()
+    print("\nLangfuse trace flushed successfully.")
 
 if __name__ == "__main__":
     # Test Query
