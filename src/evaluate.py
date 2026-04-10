@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 from src.retrieve import get_rag_chain
 from datasets import Dataset
 from ragas import evaluate
-from ragas.metrics.collections import faithfulness, answer_relevancy
+from ragas.metrics.collections import Faithfulness, AnswerRelevancy
 from ragas.llms import LangchainLLMWrapper
 from ragas.embeddings import LangchainEmbeddingsWrapper
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
@@ -84,14 +84,20 @@ def main():
         model="text-embedding-3-small"
     )
 
+    wrapped_llm = LangchainLLMWrapper(evaluator_llm)
+    wrapped_embeds = LangchainEmbeddingsWrapper(evaluator_embeddings)
+
     # 5. Run Evaluation
     print("5. Run Evaluation")
     print("Starting Ragas evaluation on Faithfulness and Answer Relevancy...")
     result = evaluate(
         dataset,
-        metrics=[faithfulness(), answer_relevancy()],
-        llm=LangchainLLMWrapper(evaluator_llm),
-        embeddings=LangchainEmbeddingsWrapper(evaluator_embeddings)
+        metrics=[
+            Faithfulness(llm=wrapped_llm), 
+            AnswerRelevancy(llm=wrapped_llm, embeddings=wrapped_embeds)
+        ],
+        llm=wrapped_llm,
+        embeddings=wrapped_embeds
     )
 
     # 6. Print Results
