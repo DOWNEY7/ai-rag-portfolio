@@ -9,7 +9,8 @@ from openai import OpenAI
 from src.retrieve import get_rag_chain
 from datasets import Dataset
 from ragas import evaluate
-from ragas.metrics.collections import Faithfulness, AnswerRelevancy
+from ragas.metrics._faithfulness import Faithfulness
+from ragas.metrics._answer_relevance import AnswerRelevancy
 from ragas.llms import llm_factory
 from ragas.embeddings import OpenAIEmbeddings as RagasOpenAIEmbeddings
 
@@ -76,7 +77,7 @@ def main():
         base_url="https://openrouter.ai/api/v1"
     )
 
-    # Ragas 0.4.x collections metrics require InstructorLLM, not LangchainLLMWrapper
+    # Ragas 0.4.x evaluate() accepts InstructorLLM and auto-injects it into metrics
     evaluator_llm = llm_factory(
         "openai/gpt-4o-mini",
         client=openai_client,
@@ -88,13 +89,12 @@ def main():
     )
 
     # 5. Run Evaluation
+    # Use non-collections Metric subclasses (compatible with evaluate())
+    # evaluate() auto-injects llm/embeddings into metrics that have them set to None
     print("Starting Ragas evaluation on Faithfulness and Answer Relevancy...")
     result = evaluate(
         dataset,
-        metrics=[
-            Faithfulness(llm=evaluator_llm),
-            AnswerRelevancy(llm=evaluator_llm, embeddings=evaluator_embeddings)
-        ],
+        metrics=[Faithfulness(), AnswerRelevancy()],
         llm=evaluator_llm,
         embeddings=evaluator_embeddings
     )
@@ -113,4 +113,3 @@ def main():
         
 if __name__ == "__main__":
     main()
-
