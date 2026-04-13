@@ -16,3 +16,5 @@ langfuse
 ragas
 datasets
 eval_type_backport
+openai
+instructor

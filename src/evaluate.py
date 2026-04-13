@@ -5,14 +5,13 @@ import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from dotenv import load_dotenv
+from openai import OpenAI
 from src.retrieve import get_rag_chain
 from datasets import Dataset
 from ragas import evaluate
 from ragas.metrics.collections import Faithfulness, AnswerRelevancy
-from ragas.llms import LangchainLLMWrapper
-from ragas.embeddings import LangchainEmbeddingsWrapper
-from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-
+from ragas.llms import llm_factory
+from ragas.embeddings import OpenAIEmbeddings as RagasOpenAIEmbeddings
 
 
 def main():
@@ -54,13 +53,13 @@ def main():
     # 3. Format as HuggingFace Dataset
     # ragas expects a specific dictionary format
     data = {
-        "user_input": questions,    # Changed from "question" in newer versions
-        "response": answers,        # Changed from "answer"
-        "retrieved_contexts": contexts, # Changed from "contexts" 
-        "reference": ground_truths  # Changed from "ground_truth"
+        "user_input": questions,
+        "response": answers,
+        "retrieved_contexts": contexts,
+        "reference": ground_truths
     }
     
-    # We maintain standard fallback keys as well just in case legacy fallback applies
+    # Legacy fallback keys for older ragas versions
     data["question"] = questions
     data["answer"] = answers
     data["contexts"] = contexts
@@ -68,33 +67,36 @@ def main():
 
     dataset = Dataset.from_dict(data)
 
-    # 4. Configure Ragas with OpenRouter
+    # 4. Configure Ragas evaluator with native InstructorLLM via OpenRouter
     print("Configuring Ragas evaluator with OpenRouter GPT-4o-mini...")
-    evaluator_llm = ChatOpenAI(
-        base_url="https://openrouter.ai/api/v1",
+
+    # Create native OpenAI client pointed at OpenRouter
+    openai_client = OpenAI(
         api_key=api_key,
-        model="openai/gpt-4o-mini",
-        temperature=0.0
-    )
-    evaluator_embeddings = OpenAIEmbeddings(
-        openai_api_base="https://openrouter.ai/api/v1",
-        openai_api_key=api_key,
-        model="text-embedding-3-small"
+        base_url="https://openrouter.ai/api/v1"
     )
 
-    wrapped_llm = LangchainLLMWrapper(evaluator_llm)
-    wrapped_embeds = LangchainEmbeddingsWrapper(evaluator_embeddings)
+    # Ragas 0.4.x collections metrics require InstructorLLM, not LangchainLLMWrapper
+    evaluator_llm = llm_factory(
+        "openai/gpt-4o-mini",
+        client=openai_client,
+        temperature=0.0
+    )
+    evaluator_embeddings = RagasOpenAIEmbeddings(
+        client=openai_client,
+        model="text-embedding-3-small"
+    )
 
     # 5. Run Evaluation
     print("Starting Ragas evaluation on Faithfulness and Answer Relevancy...")
     result = evaluate(
         dataset,
         metrics=[
-            Faithfulness(llm=wrapped_llm), 
-            AnswerRelevancy(llm=wrapped_llm, embeddings=wrapped_embeds)
+            Faithfulness(llm=evaluator_llm),
+            AnswerRelevancy(llm=evaluator_llm, embeddings=evaluator_embeddings)
         ],
-        llm=wrapped_llm,
-        embeddings=wrapped_embeds
+        llm=evaluator_llm,
+        embeddings=evaluator_embeddings
     )
 
     # 6. Print Results
@@ -111,3 +113,4 @@ def main():
         
 if __name__ == "__main__":
     main()
+
