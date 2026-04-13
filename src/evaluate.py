@@ -7,8 +7,8 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from dotenv import load_dotenv
 from datasets import Dataset
 from ragas import evaluate
-from ragas.metrics._faithfulness import faithfulness
-from ragas.metrics._answer_relevance import answer_relevancy
+from ragas.metrics._faithfulness import Faithfulness
+from ragas.metrics._answer_relevance import AnswerRelevancy
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 
 # Import RAG chain from our retrieve script
@@ -84,7 +84,7 @@ def main():
     print("Starting Ragas evaluation on Faithfulness and Answer Relevancy...")
     result = evaluate(
         dataset,
-        metrics=[faithfulness, answer_relevancy],
+        metrics=[Faithfulness(), AnswerRelevancy()],
         llm=evaluator_llm,
         embeddings=evaluator_embeddings,
     )
