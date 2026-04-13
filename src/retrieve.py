@@ -1,17 +1,29 @@
 import os
 from dotenv import load_dotenv
-from langfuse.langchain import CallbackHandler
+
+try:
+    from langfuse.langchain import CallbackHandler as LangfuseHandler
+    HAS_LANGFUSE = True
+except ImportError:
+    HAS_LANGFUSE = False
 
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 from langchain_chroma import Chroma
 from langchain_cohere import CohereRerank
 
-from langchain.retrievers.contextual_compression import ContextualCompressionRetriever
+try:
+    from langchain.retrievers.contextual_compression import ContextualCompressionRetriever
+except (ModuleNotFoundError, ImportError):
+    from langchain_community.retrievers.contextual_compression import ContextualCompressionRetriever
 
 from langchain_core.prompts import ChatPromptTemplate
 
-from langchain.chains import create_retrieval_chain
-from langchain.chains.combine_documents import create_stuff_documents_chain
+try:
+    from langchain.chains import create_retrieval_chain
+    from langchain.chains.combine_documents import create_stuff_documents_chain
+except (ModuleNotFoundError, ImportError):
+    from langchain_community.chains import create_retrieval_chain
+    from langchain_community.chains.combine_documents import create_stuff_documents_chain
 
 def get_rag_chain():
     """Builds and returns the LangChain RAG pipeline."""
@@ -84,19 +96,27 @@ def run_retrieval_pipeline(query: str):
     print("Constructing RAG Chain with Compression Retriever...")
     rag_chain = get_rag_chain()
 
-    # Initialize Langfuse callback handler (reads keys from env vars)
-    langfuse_handler = CallbackHandler()
-    print("Langfuse tracing enabled.")
+    # Initialize Langfuse callback handler if available
+    callbacks = []
+    langfuse_handler = None
+    if HAS_LANGFUSE:
+        try:
+            langfuse_handler = LangfuseHandler()
+            callbacks.append(langfuse_handler)
+            print("Langfuse tracing enabled.")
+        except Exception:
+            print("Langfuse not configured, skipping tracing.")
 
-    # 7. Execute the query with Langfuse tracing
+    # 7. Execute the query
     print("Executing query...\n")
-    response = rag_chain.invoke({"input": query}, config={"callbacks": [langfuse_handler]})
+    config = {"callbacks": callbacks} if callbacks else {}
+    response = rag_chain.invoke({"input": query}, config=config)
 
     # 8. Print the results
-    print("="*60)
+    print("=" * 60)
     print("AI ANSWER:\n")
     print(response["answer"])
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     
     print("\nCITATIONS (Retrieved Context Metadata):")
     for i, doc in enumerate(response["context"]):
@@ -104,11 +124,12 @@ def run_retrieval_pipeline(query: str):
         print(f"  [{i+1}] Source File: {source_file}")
 
     # Flush Langfuse to ensure all traces are sent before exit
-    if hasattr(langfuse_handler, 'flush'):
-        langfuse_handler.flush()
-    elif hasattr(langfuse_handler, 'client'):
-        langfuse_handler.client.flush()
-    print("\nLangfuse trace flushed successfully.")
+    if langfuse_handler is not None:
+        if hasattr(langfuse_handler, 'flush'):
+            langfuse_handler.flush()
+        elif hasattr(langfuse_handler, 'client'):
+            langfuse_handler.client.flush()
+        print("\nLangfuse trace flushed successfully.")
 
 if __name__ == "__main__":
     # Test Query

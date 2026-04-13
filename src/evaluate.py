@@ -5,14 +5,14 @@ import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from dotenv import load_dotenv
-from openai import OpenAI
-from src.retrieve import get_rag_chain
 from datasets import Dataset
 from ragas import evaluate
 from ragas.metrics._faithfulness import faithfulness
 from ragas.metrics._answer_relevance import answer_relevancy
-from ragas.llms import llm_factory
-from ragas.embeddings import OpenAIEmbeddings as RagasOpenAIEmbeddings
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+
+# Import RAG chain from our retrieve script
+from src.retrieve import get_rag_chain
 
 
 def main():
@@ -52,57 +52,47 @@ def main():
         contexts.append(retrieved_contexts)
 
     # 3. Format as HuggingFace Dataset
-    # ragas expects a specific dictionary format
+    # ragas v0.4.x evaluate() internally calls convert_v1_to_v2_dataset
+    # which maps: question->user_input, answer->response, contexts->retrieved_contexts, ground_truth->reference
     data = {
-        "user_input": questions,
-        "response": answers,
-        "retrieved_contexts": contexts,
-        "reference": ground_truths
+        "question": questions,
+        "answer": answers,
+        "contexts": contexts,
+        "ground_truth": ground_truths,
     }
-    
-    # Legacy fallback keys for older ragas versions
-    data["question"] = questions
-    data["answer"] = answers
-    data["contexts"] = contexts
-    data["ground_truth"] = ground_truths
 
     dataset = Dataset.from_dict(data)
 
-    # 4. Configure Ragas evaluator with native InstructorLLM via OpenRouter
+    # 4. Configure evaluator LLM and Embeddings
+    # ragas evaluate() natively accepts LangChain LLM and Embeddings objects
+    # and wraps them internally — no need for llm_factory or Ragas-specific wrappers
     print("Configuring Ragas evaluator with OpenRouter GPT-4o-mini...")
-
-    # Create native OpenAI client pointed at OpenRouter
-    openai_client = OpenAI(
+    evaluator_llm = ChatOpenAI(
+        base_url="https://openrouter.ai/api/v1",
         api_key=api_key,
-        base_url="https://openrouter.ai/api/v1"
+        model="openai/gpt-4o-mini",
+        temperature=0.0,
     )
-
-    # Ragas 0.4.x evaluate() accepts InstructorLLM and auto-injects it into metrics
-    evaluator_llm = llm_factory(
-        "openai/gpt-4o-mini",
-        client=openai_client,
-        temperature=0.0
-    )
-    evaluator_embeddings = RagasOpenAIEmbeddings(
-        client=openai_client,
-        model="text-embedding-3-small"
+    evaluator_embeddings = OpenAIEmbeddings(
+        openai_api_base="https://openrouter.ai/api/v1",
+        openai_api_key=api_key,
+        model="text-embedding-3-small",
     )
 
     # 5. Run Evaluation
-    # Use non-collections Metric subclasses (compatible with evaluate())
-    # evaluate() auto-injects llm/embeddings into metrics that have them set to None
+    # faithfulness and answer_relevancy are pre-instantiated Metric singletons
     print("Starting Ragas evaluation on Faithfulness and Answer Relevancy...")
     result = evaluate(
         dataset,
         metrics=[faithfulness, answer_relevancy],
         llm=evaluator_llm,
-        embeddings=evaluator_embeddings
+        embeddings=evaluator_embeddings,
     )
 
     # 6. Print Results
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("RAGAS EVALUATION RESULTS")
-    print("="*60)
+    print("=" * 60)
     print(result)
     try:
         df = result.to_pandas()
@@ -110,6 +100,6 @@ def main():
         print(df[["question", "faithfulness", "answer_relevancy"]])
     except Exception as e:
         print("Note: DataFrame parsing failed, use raw output above.", e)
-        
+
 if __name__ == "__main__":
     main()
