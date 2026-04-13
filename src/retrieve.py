@@ -11,19 +11,12 @@ from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 from langchain_chroma import Chroma
 from langchain_cohere import CohereRerank
 
-try:
-    from langchain.retrievers.contextual_compression import ContextualCompressionRetriever
-except (ModuleNotFoundError, ImportError):
-    from langchain_community.retrievers.contextual_compression import ContextualCompressionRetriever
+from langchain.retrievers.contextual_compression import ContextualCompressionRetriever
 
 from langchain_core.prompts import ChatPromptTemplate
 
-try:
-    from langchain.chains import create_retrieval_chain
-    from langchain.chains.combine_documents import create_stuff_documents_chain
-except (ModuleNotFoundError, ImportError):
-    from langchain_community.chains import create_retrieval_chain
-    from langchain_community.chains.combine_documents import create_stuff_documents_chain
+from langchain.chains import create_retrieval_chain
+from langchain.chains.combine_documents import create_stuff_documents_chain
 
 def get_rag_chain():
     """Builds and returns the LangChain RAG pipeline."""
