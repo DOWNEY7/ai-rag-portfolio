@@ -13,7 +13,7 @@ chromadb
 cohere
 tiktoken
 langfuse
-ragas
+ragas==0.4.3
 datasets
 eval_type_backport
 openai

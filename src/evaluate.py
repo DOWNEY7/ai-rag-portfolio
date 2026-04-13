@@ -9,8 +9,8 @@ from openai import OpenAI
 from src.retrieve import get_rag_chain
 from datasets import Dataset
 from ragas import evaluate
-from ragas.metrics._faithfulness import Faithfulness
-from ragas.metrics._answer_relevance import AnswerRelevancy
+from ragas.metrics._faithfulness import faithfulness
+from ragas.metrics._answer_relevance import answer_relevancy
 from ragas.llms import llm_factory
 from ragas.embeddings import OpenAIEmbeddings as RagasOpenAIEmbeddings
 
@@ -94,7 +94,7 @@ def main():
     print("Starting Ragas evaluation on Faithfulness and Answer Relevancy...")
     result = evaluate(
         dataset,
-        metrics=[Faithfulness(), AnswerRelevancy()],
+        metrics=[faithfulness, answer_relevancy],
         llm=evaluator_llm,
         embeddings=evaluator_embeddings
     )
