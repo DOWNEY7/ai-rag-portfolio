@@ -1,8 +1,7 @@
 import os
 import sys
-import asyncio
 
-# Ensure src/ is in the python path
+# Ensure repo root is in the python path so `src` package is importable
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from dotenv import load_dotenv
@@ -16,7 +15,7 @@ def main():
     load_dotenv()
     api_key = os.getenv("OPENROUTER_API_KEY") or os.getenv("OPENAI_API_KEY")
     if not api_key:
-        raise ValueError("Missing API key.")
+        raise ValueError("Missing API key: set OPENROUTER_API_KEY or OPENAI_API_KEY.")
 
     # 1. Prepare Golden Dataset (Claude Context)
     questions = [
@@ -48,8 +47,8 @@ def main():
         retrieved_contexts = [doc.page_content for doc in response["context"]]
         contexts.append(retrieved_contexts)
 
-    # 3. Configure evaluator LLM and Embeddings
-    print("Configuring Ragas evaluator with OpenRouter GPT-4o-mini...")
+    # 3. Configure evaluator LLM and Embeddings via OpenRouter
+    print("Configuring Ragas evaluator with OpenRouter gpt-4o-mini...")
     evaluator_llm = ChatOpenAI(
         base_url="https://openrouter.ai/api/v1",
         api_key=api_key,
@@ -57,13 +56,13 @@ def main():
         temperature=0.0,
     )
     evaluator_embeddings = OpenAIEmbeddings(
-        openai_api_base="https://openrouter.ai/api/v1",
-        openai_api_key=api_key,
+        base_url="https://openrouter.ai/api/v1",
+        api_key=api_key,
         model="text-embedding-3-small",
     )
 
-    # 4. Set up metrics manually (bypass evaluate() validation issue)
-    # Import metrics and wrap LLM/embeddings for ragas
+    # 4. Set up ragas metrics with wrapped LLM/embeddings
+    # NOTE: import from _answer_relevance (not _answer_relevancy) for ragas==0.4.3
     from ragas.metrics._faithfulness import Faithfulness
     from ragas.metrics._answer_relevance import AnswerRelevancy
     from ragas.llms import LangchainLLMWrapper
@@ -84,7 +83,7 @@ def main():
     metric_faithfulness.init(run_config)
     metric_answer_relevancy.init(run_config)
 
-    # 5. Score each sample individually
+    # 5. Score each sample individually using synchronous single_turn_score()
     print("Starting Ragas evaluation on Faithfulness and Answer Relevancy...")
     results = []
 
@@ -98,7 +97,7 @@ def main():
             reference=gt,
         )
 
-        # Score each metric
+        # single_turn_score() is synchronous in ragas==0.4.3
         f_score = metric_faithfulness.single_turn_score(sample)
         ar_score = metric_answer_relevancy.single_turn_score(sample)
 
@@ -126,6 +125,8 @@ def main():
     for r in results:
         q_short = r['question'][:62] + '...' if len(r['question']) > 65 else r['question']
         print(f"  {q_short:<65} {r['faithfulness']:>8.4f} {r['answer_relevancy']:>8.4f}")
+
+    print("\n✅ Evaluation complete.")
 
 
 if __name__ == "__main__":

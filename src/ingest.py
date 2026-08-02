@@ -72,8 +72,8 @@ def build_vector_store(chunks, persist_directory: str):
         
     print("Initializing embeddings via OpenRouter...")
     embeddings = OpenAIEmbeddings(
-        openai_api_base="https://openrouter.ai/api/v1",
-        openai_api_key=api_key,
+        base_url="https://openrouter.ai/api/v1",
+        api_key=api_key,
         model="text-embedding-3-small"
     )
     
